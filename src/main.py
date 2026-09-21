@@ -13,7 +13,7 @@ from sklearn.metrics import root_mean_squared_error
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-df = pd.read_csv('temperature_bologna.csv', sep=';')
+df = pd.read_csv('../temperature_bologna.csv', sep=';')
 df = df.sort_values('Data', ascending=True).reset_index(drop=True)
 temp = df['Temperatura media'].to_numpy()
 
