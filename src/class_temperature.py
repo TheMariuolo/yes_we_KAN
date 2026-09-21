@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from efficient_kan.src.efficient_kan.kan import KAN
+from efficient_kan.kan import KAN
 from FourierKAN.fftKAN import NaiveFourierKANLayer
 
 
