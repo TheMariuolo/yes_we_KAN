@@ -1,0 +1,11 @@
+[data]
+path = 'path/to/data.csv    '
+
+[train]
+SEQUENCE_LENGTH = 200
+PRED_LENGTH = 1
+BATCH_SIZE = 16
+TRAIN_SIZE = 0.8
+HIDDEN_RNN = 50
+EPOCHS_RNN = 6
+EPOCHS_KAN = 15
