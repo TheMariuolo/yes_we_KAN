@@ -4,7 +4,8 @@ from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from sklearn.metrics import root_mean_squared_error
+import matplotlib.patches as mpatches
+from sklearn.metrics import root_mean_squared_error, r2_score
 
 
 
@@ -186,21 +187,37 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
 
     temperature_test = (temp_test+1)/2 * (t_max - t_min) + t_min
 
+    r2_lstm = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_lstm[0][sequence_length:].squeeze().detach().numpy())
+    r2_kan = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_kan[sequence_length:].detach().numpy())
+    r2_fkan = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_fkan[sequence_length:].detach().numpy())
 
     plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
     plt.plot(pred_lstm.squeeze().detach().numpy(), linewidth=0.6, color='red', label='LSTM')
     plt.xlim(150, None)
     plt.title('Temperature Prediction with LSTM')
-    plt.legend()
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    empty_patch = mpatches.Patch(color="none", label=rf"$R^2 = {r2_lstm:.3f}$")
+    handles.append(empty_patch)
+    labels.append(rf"$R^2 = {r2_lstm:.3f}$")
+
+    plt.legend(handles=handles, labels=labels, loc="upper right")
     plt.show()
 
 
+    
 
     plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
     plt.plot(pred_kan.detach().numpy(), linewidth=0.6, color='red', label='KAN')
     plt.xlim(150, None)
     plt.title('Temperature Prediction with KAN')
-    plt.legend()
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    empty_patch = mpatches.Patch(color="none", label=rf"$R^2 = {r2_kan:.3f}$")
+    handles.append(empty_patch)
+    labels.append(rf"$R^2 = {r2_kan:.3f}$")
+
+    plt.legend(handles=handles, labels=labels, loc="upper right")
     plt.show()
 
 
@@ -208,13 +225,19 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
     plt.plot(pred_fkan.detach().numpy(), linewidth=0.6, color='red', label='Fourier KAN')
     plt.xlim(150, None)
     plt.title('Temperature Prediction with Fourier KAN')
-    plt.legend()
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    empty_patch = mpatches.Patch(color="none", label=rf"$R^2 = {r2_fkan:.3f}$")
+    handles.append(empty_patch)
+    labels.append(rf"$R^2 = {r2_fkan:.3f}$")
+
+    plt.legend(handles=handles, labels=labels, loc="upper right")
     plt.show()
 
 
 
 def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_climatology):
-    
+
     print('\nCalculating RMSE for different prediction lengths for every model. . .\n')
     array_rmse_kan = []
     array_rmse_fkan = []
