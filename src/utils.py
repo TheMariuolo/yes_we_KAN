@@ -4,11 +4,12 @@ from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 import torch.nn as nn
 import matplotlib.pyplot as plt
+from sklearn.metrics import root_mean_squared_error
 
 
 
 
-def preprocess(temp : np.array, t_min, t_max, sequence_length = 50, pred_length = 10,train_size = 0.8, batch_size = 32):
+def preprocess(temp : np.array, t_min, t_max, sequence_length = 50, train_size = 0.8, batch_size = 32):
 
     if isinstance(temp, list):
         raise TypeError("temp argument must be a 1D np.array, not a list")
@@ -162,5 +163,109 @@ def train_kan(kan, train_loader, val_loader, num_epochs=100, learning_rate=0.001
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title(f'{model_name} Training')
+    plt.legend()
+    plt.show()
+
+
+
+def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
+
+    pred_len = len(temp_test) - sequence_length
+
+    with torch.no_grad():
+        pred_kan = kan.sample(temp_test, len_sample = pred_len)
+        pred_fkan = fkan.sample(temp_test, len_sample = pred_len)
+        pred_lstm = lstm.sample(temp_test[:sequence_length].unsqueeze(0).unsqueeze(-1), len_sample = pred_len)
+
+
+
+
+    pred_kan = (pred_kan+1)/2 * (t_max - t_min) + t_min
+    pred_fkan = (pred_fkan+1)/2 * (t_max - t_min) + t_min
+    pred_lstm = (pred_lstm+1)/2 * (t_max - t_min) + t_min
+
+    temperature_test = (temp_test+1)/2 * (t_max - t_min) + t_min
+
+
+    plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
+    plt.plot(pred_lstm.squeeze().detach().numpy(), linewidth=0.6, color='red', label='LSTM')
+    plt.xlim(150, None)
+    plt.title('Temperature Prediction with LSTM')
+    plt.legend()
+    plt.show()
+
+
+
+    plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
+    plt.plot(pred_kan.detach().numpy(), linewidth=0.6, color='red', label='KAN')
+    plt.xlim(150, None)
+    plt.title('Temperature Prediction with KAN')
+    plt.legend()
+    plt.show()
+
+
+    plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
+    plt.plot(pred_fkan.detach().numpy(), linewidth=0.6, color='red', label='Fourier KAN')
+    plt.xlim(150, None)
+    plt.title('Temperature Prediction with Fourier KAN')
+    plt.legend()
+    plt.show()
+
+
+
+def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_climatology):
+    
+    print('\nCalculating RMSE for different prediction lengths for every model. . .\n')
+    array_rmse_kan = []
+    array_rmse_fkan = []
+    array_rmse_lstm = []
+
+
+    for i in tqdm(range(1, 25)):
+        target = []
+        pred_temp_kan = []
+        pred_temp_fkan = []
+        pred_temp_lstm = []
+
+        pred_days = i
+
+        for j in range(sequence_length, len(temp_test)-pred_days):
+            with torch.no_grad():
+                pred_kan = kan.sample(temp_test[j-sequence_length:j], len_sample = pred_days)
+                pred_fkan = fkan.sample(temp_test[j-sequence_length:j], len_sample = pred_days)
+                pred_lstm = lstm.sample(temp_test[j-sequence_length:j].unsqueeze(0).unsqueeze(-1), len_sample = pred_days)
+
+            target.append(temp_test[j+pred_days])
+            pred_temp_kan.append(pred_kan[-1])
+            pred_temp_fkan.append(pred_fkan[-1])
+            pred_temp_lstm.append(pred_lstm[0][-1])
+
+            
+
+        target, pred_temp_kan, pred_temp_fkan, pred_temp_lstm = np.array(target), np.array(pred_temp_kan), np.array(pred_temp_fkan), np.array(pred_temp_lstm)
+
+        target = (target+1)/2 * (t_max - t_min) + t_min
+        pred_temp_kan = (pred_temp_kan+1)/2 * (t_max - t_min) + t_min
+        pred_temp_fkan = (pred_temp_fkan+1)/2 * (t_max - t_min) + t_min
+        pred_temp_lstm = (pred_temp_lstm+1)/2 * (t_max - t_min) + t_min
+
+        
+        
+        rmse_kan = root_mean_squared_error(target, pred_temp_kan)
+        array_rmse_kan.append(rmse_kan)
+
+        rmse_fkan = root_mean_squared_error(target, pred_temp_fkan)
+        array_rmse_fkan.append(rmse_fkan)
+
+        rmse_lstm = root_mean_squared_error(target, pred_temp_lstm)
+        array_rmse_lstm.append(rmse_lstm)
+
+
+
+    plt.plot(array_rmse_kan, label='RMSE KAN')
+    plt.plot(array_rmse_fkan, label='RMSE Fourier KAN')
+    plt.plot(array_rmse_lstm, label='RMSE LSTM')
+    plt.axhline(y=rmse_climatology, color='red', linestyle='--', label=f'RMSE Climatology: {rmse_climatology:.2f}')
+    plt.ylim(None, rmse_climatology+rmse_climatology*0.4)
     plt.legend()
     plt.show()
