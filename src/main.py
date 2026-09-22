@@ -27,7 +27,6 @@ with open(CONFIG_FILE, "rb") as f:
 
 
 SEQUENCE_LENGTH = config['train']['SEQUENCE_LENGTH']
-PRED_LENGTH = config['train']['PRED_LENGTH']
 BATCH_SIZE = config['train']['BATCH_SIZE']
 TRAIN_SIZE = config['train']['TRAIN_SIZE']
 HIDDEN_RNN = config['train']['HIDDEN_RNN']
@@ -73,8 +72,7 @@ t_max = np.max(temp)
 train_loader, val_loader, test_loader, temp_test = preprocess(temp, 
                                                               t_min, 
                                                               t_max, 
-                                                              sequence_length=SEQUENCE_LENGTH, 
-                                                              pred_length=PRED_LENGTH, 
+                                                              sequence_length=SEQUENCE_LENGTH,
                                                               train_size=TRAIN_SIZE, 
                                                               batch_size=BATCH_SIZE)
 
@@ -83,32 +81,32 @@ train_loader, val_loader, test_loader, temp_test = preprocess(temp,
 
 
 
-lstm = LSTM(input_size=1, hidden_size=HIDDEN_RNN, num_layers=3, output_size=PRED_LENGTH).to(device)
+lstm = LSTM(input_size=1, hidden_size=HIDDEN_RNN, num_layers=3, output_size=1).to(device)
 tot_params_lstm = sum(p.numel() for p in lstm.parameters() if p.requires_grad)
 print(f'Total trainable parameters in LSTM: {tot_params_lstm}')
 
 
 
 print(f'\nTraining LSTM model. . .\n')
-train_rnn(lstm, train_loader, val_loader, num_epochs = 6, learning_rate = 1e-4, device = device)
+train_rnn(lstm, train_loader, val_loader, num_epochs = EPOCHS_RNN, learning_rate = 1e-4, device = device)
 
 
 
-kan = KAN_temp([SEQUENCE_LENGTH, 80, PRED_LENGTH], grid_size = 9, spline_order = 3, base_activation = nn.SiLU).to(device)
+kan = KAN_temp([SEQUENCE_LENGTH, 80, 1], grid_size = 9, spline_order = 3, base_activation = nn.SiLU).to(device)
 tot_params_kan = sum(p.numel() for p in kan.parameters() if p.requires_grad)
 print(f'\nTotal trainable parameters in KAN: {tot_params_kan}')
 
 
 print(f'\nTraining KAN model. . .\n')
-train_kan(kan, train_loader, val_loader, num_epochs = 15, learning_rate = 1e-4, device = device)
+train_kan(kan, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate = 1e-4, device = device)
 
 
 
-fkan = FKAN(features = [SEQUENCE_LENGTH, 100, PRED_LENGTH], gridsize = 3, smooth_initialization=True).to(device)
+fkan = FKAN(features = [SEQUENCE_LENGTH, 100, 1], gridsize = 3, smooth_initialization=True).to(device)
 tot_params_kan = sum(p.numel() for p in fkan.parameters() if p.requires_grad)
 print(f'\nTotal trainable parameters in Fourier KAN: {tot_params_kan}')
 print(f'\nTraining Fourier KAN model. . .\n')
-train_kan(fkan, train_loader, val_loader, num_epochs = 15, learning_rate = 1e-4, device = device, model_name = 'Fourier KAN')
+train_kan(fkan, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate = 1e-4, device = device, model_name = 'Fourier KAN')
 
 
 
