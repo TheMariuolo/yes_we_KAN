@@ -29,9 +29,13 @@ with open(CONFIG_FILE, "rb") as f:
 SEQUENCE_LENGTH = config['train']['SEQUENCE_LENGTH']
 BATCH_SIZE = config['train']['BATCH_SIZE']
 TRAIN_SIZE = config['train']['TRAIN_SIZE']
-HIDDEN_RNN = config['train']['HIDDEN_RNN']
 EPOCHS_RNN = config['train']['EPOCHS_RNN']
 EPOCHS_KAN = config['train']['EPOCHS_KAN']
+
+HIDDEN_RNN = config['models_architecture']['HIDDEN_RNN']
+GRID_SIZE_KAN = config['models_architecture']['GRID_SIZE_KAN']
+SPLINE_ORDER_KAN = config['models_architecture']['SPLINE_ORDER_KAN']
+GRID_SIZE_FKAN = config['models_architecture']['GRID_SIZE_FKAN']
 
 path = config['data']['path']
 
@@ -92,7 +96,8 @@ train_rnn(lstm, train_loader, val_loader, num_epochs = EPOCHS_RNN, learning_rate
 
 
 
-kan = KAN_temp([SEQUENCE_LENGTH, 80, 1], grid_size = 9, spline_order = 3, base_activation = nn.SiLU).to(device)
+
+kan = KAN_temp([SEQUENCE_LENGTH, 80, 1], grid_size = GRID_SIZE_KAN, spline_order = SPLINE_ORDER_KAN, base_activation = nn.SiLU).to(device)
 tot_params_kan = sum(p.numel() for p in kan.parameters() if p.requires_grad)
 print(f'\nTotal trainable parameters in KAN: {tot_params_kan}')
 
@@ -102,7 +107,8 @@ train_kan(kan, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate 
 
 
 
-fkan = FKAN(features = [SEQUENCE_LENGTH, 100, 1], gridsize = 3, smooth_initialization=True).to(device)
+
+fkan = FKAN(features = [SEQUENCE_LENGTH, 100, 1], gridsize = GRID_SIZE_FKAN, smooth_initialization=True).to(device)
 tot_params_kan = sum(p.numel() for p in fkan.parameters() if p.requires_grad)
 print(f'\nTotal trainable parameters in Fourier KAN: {tot_params_kan}')
 print(f'\nTraining Fourier KAN model. . .\n')
