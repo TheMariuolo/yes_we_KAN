@@ -45,8 +45,6 @@ path = config['data']['path']
 
 
 
-
-
 df = pd.read_csv(path, sep=';')
 df = df.sort_values('Data', ascending=True).reset_index(drop=True)
 temp = df['Temperatura media'].to_numpy()
@@ -69,19 +67,18 @@ rmse_climatology = df['error_climatology'].mean()
 
 
 
-
-
 t_min = np.min(temp)
 t_max = np.max(temp)
 
 
 
-train_loader, val_loader, test_loader, temp_test = preprocess(temp, 
-                                                              t_min, 
-                                                              t_max, 
-                                                              sequence_length=SEQUENCE_LENGTH,
-                                                              train_size=TRAIN_SIZE, 
-                                                              batch_size=BATCH_SIZE)
+
+train_loader, val_loader, temp_test = preprocess(temp, 
+                                                t_min, 
+                                                t_max, 
+                                                sequence_length=SEQUENCE_LENGTH,
+                                                train_size=TRAIN_SIZE, 
+                                                batch_size=BATCH_SIZE)
 
 
 
