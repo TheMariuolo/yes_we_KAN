@@ -53,7 +53,7 @@ def preprocess(temp : np.array, t_min, t_max, sequence_length = 50, train_size =
    
     temp_test = torch.tensor(temp_test, dtype=torch.float32)
 
-    return train_loader, val_loader, None, temp_test
+    return train_loader, val_loader, temp_test
 
 
 
