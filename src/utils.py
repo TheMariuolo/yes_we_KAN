@@ -202,6 +202,8 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
     labels.append(rf"$R^2 = {r2_lstm:.3f}$")
 
     plt.legend(handles=handles, labels=labels, loc="upper right")
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Temperature [°C]')
     plt.show()
 
 
@@ -218,6 +220,8 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
     labels.append(rf"$R^2 = {r2_kan:.3f}$")
 
     plt.legend(handles=handles, labels=labels, loc="upper right")
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Temperature [°C]')
     plt.show()
 
 
@@ -232,6 +236,8 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
     labels.append(rf"$R^2 = {r2_fkan:.3f}$")
 
     plt.legend(handles=handles, labels=labels, loc="upper right")
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Temperature [°C]')
     plt.show()
 
 
