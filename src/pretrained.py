@@ -18,7 +18,8 @@ from tabulate import tabulate
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-CONFIG_FILE = Path("config.toml")
+
+CONFIG_FILE = Path("config.example.toml")
 
 with open(CONFIG_FILE, "rb") as f:
         config = tomllib.load(f)
@@ -87,7 +88,7 @@ plt.plot(temp_norm[-10:], label = "Ground Truth", color = "blue", linewidth = 2)
 plt.plot(range(9,20), pred_kan[-11:], label = "KAN Prediction", color = "red", linestyle = "--")
 plt.plot(range(9,20), pred_fkan[-11:], label = "FKAN Prediction", color = "green", linestyle = "-.")
 plt.title("Temperature Forecasting")
-plt.xlabel("Time [days]")
+plt.xlabel("Time [Days]")
 plt.ylabel("Temperature [°C]")
 plt.legend()
 plt.show()
