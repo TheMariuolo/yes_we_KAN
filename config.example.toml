@@ -1,5 +1,5 @@
 [data]
-path =  'temperature_bologna.csv'
+path =  'path_to_data.csv'
 
 [train]
 SEQUENCE_LENGTH = 200
