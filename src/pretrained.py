@@ -3,9 +3,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from utils import preprocess, train_rnn, train_kan, show_predictions, models_rmse
-from class_temperature import LSTM, KAN_temp, FKAN
+from class_temperature import KAN_temp, FKAN, MLP
 from sklearn.metrics import root_mean_squared_error
 
 import tomllib
@@ -63,18 +61,21 @@ temp_norm = torch.tensor(temp_norm, dtype=torch.float32)
 
 checkpoint_kan = torch.load("pretrained/kan_pretrained.pth", map_location=device, weights_only=True)
 checkpoint_fkan = torch.load("pretrained/fkan_pretrained.pth", map_location=device, weights_only=True)
+checkpoint_mlp = torch.load("pretrained/mlp_pretrained.pth", map_location=device, weights_only=True)
 
 
 kan = KAN_temp([200, 80, 1], grid_size = 9, spline_order = 3, base_activation = nn.SiLU).to(device)
 fkan = FKAN(features = [200, 80, 1], gridsize = 3, smooth_initialization=True).to(device)
+mlp = MLP(200, 1).to(device)
 
 kan.load_state_dict(checkpoint_kan)
 fkan.load_state_dict(checkpoint_fkan)
-
+mlp.load_state_dict(checkpoint_mlp)
 
 with torch.no_grad():
         pred_kan = kan.sample(temp_norm[-200:], len_sample = 10)
         pred_fkan = fkan.sample(temp_norm[-200:], len_sample = 10)
+        pred_mlp = mlp.sample(temp_norm[-200:], len_sample = 10)
 
 
 
@@ -82,11 +83,13 @@ with torch.no_grad():
 temp_norm = (temp_norm+1)/2 * (t_max - t_min) + t_min
 pred_kan = (pred_kan+1)/2 * (t_max - t_min) + t_min
 pred_fkan = (pred_fkan+1)/2 * (t_max - t_min) + t_min
+pred_mlp = (pred_mlp+1)/2 * (t_max - t_min) + t_min
 
 
 plt.plot(temp_norm[-10:], label = "Ground Truth", color = "blue", linewidth = 2)
 plt.plot(range(9,20), pred_kan[-11:], label = "KAN Prediction", color = "red", linestyle = "--")
 plt.plot(range(9,20), pred_fkan[-11:], label = "FKAN Prediction", color = "green", linestyle = "-.")
+plt.plot(range(9,20), pred_mlp[-11:], label = "MLP Prediction", color = "orange", linestyle = ":")
 plt.title("Temperature Forecasting")
 plt.xlabel("Time [Days]")
 plt.ylabel("Temperature [°C]")
@@ -104,7 +107,8 @@ df = pd.DataFrame(
     {
         "Date": dates,
         "Prediction KAN (°C)": pred_kan[-10:].detach().numpy(),
-        "Prediction FKAN (°C)": pred_fkan[-10:].detach().numpy()
+        "Prediction FKAN (°C)": pred_fkan[-10:].detach().numpy(),
+        "Prediction MLP (°C)": pred_mlp[-10:].detach().numpy()
     }
 )
 
