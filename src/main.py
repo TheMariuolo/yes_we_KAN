@@ -19,8 +19,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 
-
-CONFIG_FILE = Path("config.toml")
+CONFIG_FILE = Path("config.example.toml")
 
 with open(CONFIG_FILE, "rb") as f:
         config = tomllib.load(f)
@@ -38,6 +37,9 @@ SPLINE_ORDER_KAN = config['models_architecture']['SPLINE_ORDER_KAN']
 GRID_SIZE_FKAN = config['models_architecture']['GRID_SIZE_FKAN']
 HIDDEN_KAN = config['models_architecture']['HIDDEN_KAN']
 HIDDEN_FKAN = config['models_architecture']['HIDDEN_FKAN']
+
+SAVE_MODELS = config['models_architecture']['SAVE_MODELS']
+
 
 
 path = config['data']['path']
@@ -121,3 +123,8 @@ train_kan(fkan, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate
 show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, SEQUENCE_LENGTH)
 
 models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, SEQUENCE_LENGTH, rmse_climatology)
+
+if SAVE_MODELS:
+    torch.save(lstm.state_dict(), "trained_models/lstm_trained.pth")
+    torch.save(kan.state_dict(), "trained_models/kan_trained.pth")
+    torch.save(fkan.state_dict(), "trained_models/fkan_trained.pth")
