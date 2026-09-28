@@ -1,11 +1,18 @@
 [data]
-path = 'path/to/data.csv    '
+path =  'temperature_bologna.csv'
 
 [train]
 SEQUENCE_LENGTH = 200
-PRED_LENGTH = 1
 BATCH_SIZE = 16
 TRAIN_SIZE = 0.8
-HIDDEN_RNN = 50
-EPOCHS_RNN = 6
+EPOCHS_RNN = 1
 EPOCHS_KAN = 15
+
+[models_architecture]
+HIDDEN_RNN = 50
+HIDDEN_KAN = 80
+HIDDEN_FKAN = 100
+GRID_SIZE_KAN = 9
+SPLINE_ORDER_KAN = 3
+GRID_SIZE_FKAN = 3
+SAVE_MODELS = false
