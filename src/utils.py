@@ -169,13 +169,14 @@ def train_kan(kan, train_loader, val_loader, num_epochs=100, learning_rate=0.001
 
 
 
-def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
+def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, mlp, sequence_length):
 
     pred_len = len(temp_test) - sequence_length
 
     with torch.no_grad():
         pred_kan = kan.sample(temp_test, len_sample = pred_len)
         pred_fkan = fkan.sample(temp_test, len_sample = pred_len)
+        pred_mlp = mlp.sample(temp_test, len_sample = pred_len)
         pred_lstm = lstm.sample(temp_test[:sequence_length].unsqueeze(0).unsqueeze(-1), len_sample = pred_len)
 
 
@@ -183,13 +184,17 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
 
     pred_kan = (pred_kan+1)/2 * (t_max - t_min) + t_min
     pred_fkan = (pred_fkan+1)/2 * (t_max - t_min) + t_min
+    pred_mlp = (pred_mlp+1)/2 * (t_max - t_min) + t_min
     pred_lstm = (pred_lstm+1)/2 * (t_max - t_min) + t_min
 
     temperature_test = (temp_test+1)/2 * (t_max - t_min) + t_min
 
+
     r2_lstm = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_lstm[0][sequence_length:].squeeze().detach().numpy())
     r2_kan = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_kan[sequence_length:].detach().numpy())
     r2_fkan = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_fkan[sequence_length:].detach().numpy())
+    r2_mlp = r2_score(temperature_test[sequence_length:].detach().numpy(), pred_mlp[sequence_length:].detach().numpy())
+
 
     plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
     plt.plot(pred_lstm.squeeze().detach().numpy(), linewidth=0.6, color='red', label='LSTM')
@@ -225,6 +230,8 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
     plt.show()
 
 
+
+
     plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
     plt.plot(pred_fkan.detach().numpy(), linewidth=0.6, color='red', label='Fourier KAN')
     plt.xlim(150, None)
@@ -242,12 +249,31 @@ def show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length):
 
 
 
-def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_climatology):
+
+    plt.plot(temperature_test.detach().numpy(), linewidth=0.6, color='blue', label='Ground Truth')
+    plt.plot(pred_mlp.detach().numpy(), linewidth=0.6, color='red', label='MLP')
+    plt.xlim(150, None)
+    plt.title('Temperature Prediction with MLP')
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    empty_patch = mpatches.Patch(color="none", label=rf"$R^2 = {r2_mlp:.3f}$")
+    handles.append(empty_patch)
+    labels.append(rf"$R^2 = {r2_mlp:.3f}$")
+
+    plt.legend(handles=handles, labels=labels, loc="upper right")
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Temperature [°C]')
+    plt.show()
+
+
+
+def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, mlp, sequence_length, rmse_climatology):
 
     print('\nCalculating RMSE for different prediction lengths for every model. . .\n')
     array_rmse_kan = []
     array_rmse_fkan = []
     array_rmse_lstm = []
+    array_rmse_mlp = []
 
 
     for i in tqdm(range(1, 25)):
@@ -255,6 +281,7 @@ def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_
         pred_temp_kan = []
         pred_temp_fkan = []
         pred_temp_lstm = []
+        pred_temp_mlp = []
 
         pred_days = i
 
@@ -262,21 +289,24 @@ def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_
             with torch.no_grad():
                 pred_kan = kan.sample(temp_test[j-sequence_length:j], len_sample = pred_days)
                 pred_fkan = fkan.sample(temp_test[j-sequence_length:j], len_sample = pred_days)
+                pred_mlp = mlp.sample(temp_test[j-sequence_length:j], len_sample = pred_days)
                 pred_lstm = lstm.sample(temp_test[j-sequence_length:j].unsqueeze(0).unsqueeze(-1), len_sample = pred_days)
 
             target.append(temp_test[j+pred_days])
             pred_temp_kan.append(pred_kan[-1])
             pred_temp_fkan.append(pred_fkan[-1])
+            pred_temp_mlp.append(pred_mlp[-1])
             pred_temp_lstm.append(pred_lstm[0][-1])
 
             
 
-        target, pred_temp_kan, pred_temp_fkan, pred_temp_lstm = np.array(target), np.array(pred_temp_kan), np.array(pred_temp_fkan), np.array(pred_temp_lstm)
+        target, pred_temp_kan, pred_temp_fkan, pred_temp_lstm, pred_temp_mlp = np.array(target), np.array(pred_temp_kan), np.array(pred_temp_fkan), np.array(pred_temp_lstm), np.array(pred_temp_mlp)
 
         target = (target+1)/2 * (t_max - t_min) + t_min
         pred_temp_kan = (pred_temp_kan+1)/2 * (t_max - t_min) + t_min
         pred_temp_fkan = (pred_temp_fkan+1)/2 * (t_max - t_min) + t_min
         pred_temp_lstm = (pred_temp_lstm+1)/2 * (t_max - t_min) + t_min
+        pred_temp_mlp = (pred_temp_mlp+1)/2 * (t_max - t_min) + t_min
 
         
         
@@ -289,11 +319,18 @@ def models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, sequence_length, rmse_
         rmse_lstm = root_mean_squared_error(target, pred_temp_lstm)
         array_rmse_lstm.append(rmse_lstm)
 
+        rmse_mlp = root_mean_squared_error(target, pred_temp_mlp)
+        array_rmse_mlp.append(rmse_mlp)
+
 
 
     plt.plot(array_rmse_kan, label='RMSE KAN')
     plt.plot(array_rmse_fkan, label='RMSE Fourier KAN')
     plt.plot(array_rmse_lstm, label='RMSE LSTM')
+    plt.plot(array_rmse_mlp, label='RMSE MLP')
+    plt.xlabel('Prediction Length [Days]')
+    plt.ylabel('RMSE [°C]')
+    plt.title('RMSE for different prediction lengths')
     plt.axhline(y=rmse_climatology, color='red', linestyle='--', label=f'RMSE Climatology: {rmse_climatology:.2f}')
     plt.ylim(None, rmse_climatology+rmse_climatology*0.4)
     plt.legend()

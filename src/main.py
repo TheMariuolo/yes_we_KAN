@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from utils import preprocess, train_rnn, train_kan, show_predictions, models_rmse
-from class_temperature import LSTM, KAN_temp, FKAN
+from class_temperature import LSTM, KAN_temp, FKAN, MLP
 from sklearn.metrics import root_mean_squared_error
 
 import tomllib
@@ -118,13 +118,20 @@ print(f'\nTraining Fourier KAN model. . .\n')
 train_kan(fkan, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate = 1e-4, device = device, model_name = 'Fourier KAN')
 
 
+mlp = MLP(SEQUENCE_LENGTH, 1)
+tot_params_mlp = sum(p.numel() for p in mlp.parameters() if p.requires_grad)
+print(f'Total trainable parameters in MLP: {tot_params_mlp}')
+train_kan(mlp, train_loader, val_loader, num_epochs = EPOCHS_KAN, learning_rate = 1e-4, device = device, model_name = 'MLP')
 
 
-show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, SEQUENCE_LENGTH)
 
-models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, SEQUENCE_LENGTH, rmse_climatology)
+
+show_predictions(temp_test, t_min, t_max, kan, fkan, lstm, mlp, SEQUENCE_LENGTH)
+
+models_rmse(temp_test, t_min, t_max, kan, fkan, lstm, mlp, SEQUENCE_LENGTH, rmse_climatology)
 
 if SAVE_MODELS:
     torch.save(lstm.state_dict(), "trained_models/lstm_trained.pth")
     torch.save(kan.state_dict(), "trained_models/kan_trained.pth")
     torch.save(fkan.state_dict(), "trained_models/fkan_trained.pth")
+    torch.save(mlp.state_dict(), "trained_models/mlp_trained.pth")
