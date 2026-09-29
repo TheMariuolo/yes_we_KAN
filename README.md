@@ -131,9 +131,7 @@ Despite the non trivial result of having a model more reliable than a random mea
 
 **Kolmogorov-Arnold Networks (KANs)** are an alternative to the Multi-Layer Perceptron (MLP), introduced by Liu et al. (2024) and inspired by the **Kolmogorov-Arnold representation theorem**. The theorem states that any continuous multivariate function on a bounded domain can be written as a finite composition of continuous *univariate* functions and sums:
 
-```
-f(x_1, ..., x_n) = Σ_{q=0}^{2n} Φ_q( Σ_{p=1}^{n} φ_{q,p}(x_p) )
-```
+$f(x_1, \cdots, x_n) = \sum_{q=0}^{2n} \Phi_q(\sum_{p=1}^n \phi_{q,p}(x_p))$
 
 ### MLP vs KAN
 
@@ -145,23 +143,21 @@ f(x_1, ..., x_n) = Σ_{q=0}^{2n} Φ_q( Σ_{p=1}^{n} φ_{q,p}(x_p) )
 
 A KAN layer with `n_in` inputs and `n_out` outputs computes
 
-```
-x_out[j] = Σ_i φ_{j,i}( x_in[i] )
-```
+$x_{out,j} = \sum_i \phi_{j,i}(x_{in,i})$
 
-where each `φ_{j,i}` is its own learnable one-dimensional function. Deeper networks are obtained by stacking layers, as in `[SEQUENCE_LENGTH, HIDDEN, 1]` in this project.
+
+where each $\phi_{j,i}$ is its own learnable one-dimensional function. Deeper networks are obtained by stacking layers.
 
 ### Spline KAN (`efficient_kan`)
 
 Each edge function is parameterised as a base term plus a B-spline:
 
-```
-φ(x) = w_b · silu(x) + w_s · Σ_k c_k B_k(x)
-```
+$\phi(x) = w_b \cdot silu(x) + w_s \cdot \sum_k c_k B_k(x)$
+
 
 - `grid_size` sets the number of grid intervals on `[-1, 1]` (finer grid, more expressive function, more parameters).
 - `spline_order` is the degree of the B-splines (3 = cubic).
-- The `c_k` coefficients are learned by gradient descent.
+- The $c_k$ coefficients are learned by gradient descent.
 
 `efficient-kan` reformulates the original computation as a plain linear operation on the B-spline basis values, which is much faster and lighter on memory than the reference implementation.
 
@@ -169,13 +165,12 @@ Each edge function is parameterised as a base term plus a B-spline:
 
 Here each edge function is a truncated Fourier series:
 
-```
-φ(x) = Σ_{k=1}^{G} ( a_k cos(kx) + b_k sin(kx) )
-```
+$\phi(x) = \sum_{k=1}^G (a_k cos(kx) + b_k sin(kx))$
+
 
 - `gridsize` (G) is the number of frequencies.
 - The basis functions are global and periodic, so inputs outside the training range cannot fall "off the grid" as they can with splines.
-- With `smooth_initialization`, coefficients are attenuated by `k²` at initialisation, so the learned functions start smooth instead of high-frequency.
+- With `smooth_initialization`, coefficients are attenuated by $k^2$ at initialisation, so the learned functions start smooth instead of high-frequency.
 
 The periodic basis is a plausible fit for seasonal signals such as temperature, which is one reason the two variants are compared here.
 
