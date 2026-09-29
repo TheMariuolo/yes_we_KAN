@@ -99,7 +99,7 @@ Run both commands from the repository root.
 python src/main.py
 ```
 
-Trains the LSTM, KAN and Fourier KAN, shows the predictions and the RMSE plot. With `SAVE_MODELS = true`, weights are written to `trained_models/`.
+Trains the LSTM, KAN and Fourier KAN, shows the predictions and the RMSE plot. With `SAVE_MODELS = true`, weights are written to `trained_models/`. The models are trained to predict the next temperature value.
 
 **Forecast the next 10 days with the pretrained models**
 The folder `pretrained` contains three pretrained models, a MLP, a KAN and a Fourier KAN, that can be used to forecast the following 10 days given the `.csv` file by running:
