@@ -178,6 +178,7 @@ The periodic basis is a plausible fit for seasonal signals such as temperature, 
 
 KANs can be more parameter-efficient on some smooth, low-dimensional problems, and each learned edge function can be plotted and inspected. In exchange, they are typically slower to train than an MLP of similar size, and their advantages are not guaranteed on every task. Comparing them against an LSTM and a climatology baseline is the purpose of this repository.
 
-**Reference:** Z. Liu et al., *KAN: Kolmogorov-Arnold Networks*, 2024 ([arXiv:2404.19756](https://arxiv.org/abs/2404.19756)).
-
+**References:**
+Z. Liu et al., *KAN: Kolmogorov-Arnold Networks*, 2024 ([arXiv:2404.19756](https://arxiv.org/abs/2404.19756)).
 Fourier_KAN : https://github.com/GistNoesis/FourierKAN/
+efficientKAN: https://github.com/Blealtan/efficient-kan
