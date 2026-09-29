@@ -1,6 +1,6 @@
 # Yes we KAN
 
-PyTorch pipeline for **temperature forecasting** with Kolmogorov-Arnold Networks. It trains and compares four models on a historical daily temperature series for Bologna:
+PyTorch pipeline for Bologna **temperature forecasting** with Kolmogorov-Arnold Networks. It trains and compares four models on a historical daily temperature series for Bologna:
 
 - **KAN**: spline-based KAN, from [efficient-kan](https://github.com/Blealtan/efficient-kan), see also the [official KAN implementation](https://github.com/KindXiaoming/pykan)
 - **FKAN**: Fourier KAN, from [FourierKAN](https://github.com/GistNoesis/FourierKAN/)
@@ -8,6 +8,8 @@ PyTorch pipeline for **temperature forecasting** with Kolmogorov-Arnold Networks
 - **MLP**: classical Feed Forward Neural Network
 
 All models are also compared against a simple **climatology** baseline (mean temperature for each day of the year).
+
+Data can be downloaded from [Bologna Open Data website](https://opendata.comune.bologna.it/explore/dataset/temperature_bologna/export/?disjunctive.stagione).
 
 ## Table of contents
 
