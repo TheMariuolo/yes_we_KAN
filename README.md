@@ -16,6 +16,7 @@ All models are also compared against a simple **climatology** baseline (mean tem
 - [Data](#data)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Results](#results)
 - [Theoretical background: KAN](#theoretical-background-kan)
 
 
@@ -101,13 +102,28 @@ python src/main.py
 Trains the LSTM, KAN and Fourier KAN, shows the predictions and the RMSE plot. With `SAVE_MODELS = true`, weights are written to `trained_models/`.
 
 **Forecast the next 10 days with the pretrained models**
-The folder `pretrained` contains two pretrained models, a KAN and a Fourier KAN, that can be used to forecast the following 10 days given the `.csv` file by running:
+The folder `pretrained` contains three pretrained models, a MLP, a KAN and a Fourier KAN, that can be used to forecast the following 10 days given the `.csv` file by running:
 ```bash
 python src/pretrained.py
 ```
 
 Loads the checkpoints from `pretrained/`, forecasts 10 days starting from the last 200 values of the series, and prints a table with the KAN and FKAN predictions.
 
+## Results
+![Autoregressive temperature prediction with four models](images/models_prediction.png)
+*Fig. 1 Autoregressive temperature prediction with four models*
+
+After being trained to predict the next temperature value, each of the four models has been used to autoregressive predict a given number of future days.
+
+We can see how LSTM is unable to capture any trend after 1 prediction day, while KAN seems to be the best among those models. To quantify the prediction error I plotted in Fig. 2 the Root Mean Squared Error for each model given an increase number of forecast days compared to a random model, i.e. the RMSE obtained considering for each day of the year the mean of the previous years temperature.
+
+![RMSE](images/RMSE.png)
+
+*Fig.2 Root Mean Squared Error for each model given an increase number of forecast days compared to a random model*
+
+Only the KAN and the MLP have a region where are more reliable than a random model, with the KAN being the best achieving 5 days of forecast period in which is better than random.
+
+Despite the non trivial result of having a model more reliable than a random mean of years temperature, this KAN training for temperature forecasting is very unstable, leading to different results after being trained with the same parameters.
 
 ## Theoretical background: KAN
 
